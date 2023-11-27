@@ -26,6 +26,26 @@ pipeline {
                 echo 'use var to define nexus repo id, port, ip'
                 echo 'in setting.xml we have nsxus server details : each repo, user & passwd '
             }
+            post {
+                success {
+                    echo "good job, use this archiveArtifacts plugin already installd"
+                    echo "to achive everything ends with .war "
+                    archiveArtifacts (artifacts: '')
+                }
+            }
+        }
+
+        stage('Test') {
+            steps: {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Checkstyle analysis') {
+            steps{
+                echo 'using maven shell cmd to run checkstyle'
+                sh 'mvn checkstyle:checkstyle'
+            }
         }
     }
 }

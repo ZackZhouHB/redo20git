@@ -36,13 +36,13 @@ pipeline {
         }
 
         stage('Test') {
-            steps: {
+            steps {
                 sh 'mvn -s settings.xml test'
             }
         }
 
         stage('Checkstyle analysis') {
-            steps{
+            steps {
                 echo 'using maven shell cmd to run checkstyle'
                 sh 'mvn -s settings.xml checkstyle:checkstyle'
             }

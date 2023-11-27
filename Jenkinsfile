@@ -17,7 +17,7 @@ pipeline {
         NEXUS_GRP_REPO = 'vpro-maven-group' 
     }
     stages {
-        stage(Build) {
+        stage('Build') {
             steps {
                 sh 'mvn -s settings.xml -DskipTests install'
                 echo 'this stage run maven install to pass setting from pom.xml and settings.xml'

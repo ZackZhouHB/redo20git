@@ -30,7 +30,7 @@ pipeline {
                 success {
                     echo "good job, use this archiveArtifacts plugin already installd"
                     echo "to achive everything ends with .war "
-                    archiveArtifacts (artifacts: '')
+                    archiveArtifacts artifacts: '**/*.war'
                 }
             }
         }

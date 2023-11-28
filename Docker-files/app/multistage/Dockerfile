@@ -3,7 +3,7 @@ FROM openjdk:11 AS BUILD_IMAGE
 LABEL "Project"="e4"
 
 # install sw and build artifact from 1st build image
-RUN apt install && apt install maven -y && apt install git -y
+RUN apt-get update && apt-get install maven -y
 RUN git clone https://github.com/devopshydclub/vprofile-project.git
 RUN cd vprofile-project && git checkout docker && mvn install
 

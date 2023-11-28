@@ -25,6 +25,8 @@ pipeline {
         registryCredential = 'ecr:ap-southeast-2:awscreds'
         appRegistry = '079999092048.dkr.ecr.ap-southeast-2.amazonaws.com/redo20e7'
         vprofileRegistry = "https://079999092048.dkr.ecr.ap-southeast-2.amazonaws.com/"
+        cluster = "vprofilestaging"
+        service = "vproappprdsvc"
     }
     stages {
         stage('Build') {
@@ -127,7 +129,19 @@ pipeline {
                   }
                 }
             }
-        }       
+        }
+        
+        stage('Depoly to ECS staging') {
+            steps{
+                echo 'use withAWS to pass cred for jenkins to manage ecs'
+                echo 'ecs service and task, ecs service will inform task to fetch latest image redeploy'
+                echo 'this will delete old container and create new on based on latest image'
+                echo 'use shell cmd to update-service, force deploy new image'
+                withAWS(credentials: 'awscreds', region: 'ap-southeast-2') {
+                    sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
+                }
+            }
+        }               
     }
     post {
         always {

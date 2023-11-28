@@ -22,7 +22,7 @@ pipeline {
         NEXUS_GRP_REPO = 'vpro-maven-group'
         SONARSERVER = 'sonarserver'
         SONARSCANNER = 'sonarscanner' 
-        registryCredential = 'ec2:ap-southeast-2:awscreds'
+        registryCredential = 'ecr:ap-southeast-2:awscreds'
         appRegistry = '079999092048.dkr.ecr.ap-southeast-2.amazonaws.com/redo20e7'
         vprofileRegistry = "https://079999092048.dkr.ecr.ap-southeast-2.amazonaws.com/"
     }

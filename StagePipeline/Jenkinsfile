@@ -5,54 +5,57 @@ def COLOR_MAP = [
 
 pipeline {
     agent any
-    tools {
-        maven "maven3"
-        jdk "jdk8"
-    }
+    tools { 
+        maven "MAVEN3"
+        jdk "OracleJDK8"
+    } 
 
     environment {
-        SNAP_REPO = 'zack2-snapshot'
+        SNAP_REPO = 'vprofile-snapshot'
         NEXUS_USER = 'admin'
-        NEXUS_PASS = '123'
-        RELEASE_REPO = 'zack2-release'
-        CENTRAL_REPO = 'zack2-maven-central'
-        NEXUSIP = '172.31.31.156'
-        NEXUSPORT = '8081'
-        NEXUS_GRP_REPO = 'zack2-maven-group'
-        NEXUS_LOGIN = 'nexuslogin'
+        NEXUS_PASS = 'admin123'
+        RELEASE_REPO = 'vprofile-release'
+        CENTRAL_REPO = 'vpro-maven-central'
+        NEXUSIP = "172.31.11.87"
+        NEXUSPORT = "8081"
+        NEXUS_LOGIN = "nexuslogin"
+        NEXUS_GRP_REPO = 'vpro-maven-group'
         SONARSERVER = 'sonarserver'
-        SONARSCANNER = 'sonarscanner'
-        registryCredential = 'ecr:ap-southeast-2:awscreds'
-        appRegistry = '899538497933.dkr.ecr.ap-southeast-2.amazonaws.com/zack2appimg2'
-        vprofileRegistry = "https://899538497933.dkr.ecr.ap-southeast-2.amazonaws.com/"
-        cluster = "zack2-cicd-jenkins-staging2"
-        service = "zack2-stage-service"
+        SONARSCANNER = 'sonarscanner' 
+        registryCredential = 'ec2:ap-southeast-2:awscreds'
+        appRegistry = '079999092048.dkr.ecr.ap-southeast-2.amazonaws.com/redo20e7'
+        vprofileRegistry = "https://079999092048.dkr.ecr.ap-southeast-2.amazonaws.com/"
+        #cluster = "zack2-cicd-jenkins-staging2"
+        #service = "zack2-stage-service"
     }
-
-
-
     stages {
-        stage('BUILD'){
+        stage('Build') {
             steps {
                 sh 'mvn -s settings.xml -DskipTests install'
+                echo 'this stage run maven install to pass setting from pom.xml and settings.xml'
+                echo 'then we need maven to dl dependency from nexus repo defined earlier'
+                echo 'which specified in pom.xml'
+                echo 'use var to define nexus repo id, port, ip'
+                echo 'in setting.xml we have nsxus server details : each repo, user & passwd '
             }
             post {
                 success {
-                    echo "Now it is Archiving."
+                    echo "good job, use this archiveArtifacts plugin already installd"
+                    echo "to achive everything ends with .war "
                     archiveArtifacts artifacts: '**/*.war'
                 }
             }
         }
 
-        stage('Test'){
+        stage('Test') {
             steps {
                 sh 'mvn -s settings.xml test'
             }
-
         }
 
-        stage('Checkstyle Analysis'){
+        stage('Checkstyle analysis') {
             steps {
+                echo 'using maven shell cmd to run checkstyle'
                 sh 'mvn -s settings.xml checkstyle:checkstyle'
             }
         }
@@ -63,6 +66,8 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv("${SONARSERVER}") {
+                    echo 'understand sonarscanner for jenkins'
+                    echo 'search google sonar scanner with jenkins'
                     sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
                     -Dsonar.projectName=vprofile \
                     -Dsonar.projectVersion=1.0 \
@@ -75,20 +80,13 @@ pipeline {
             }
         }
 
-        
-        stage("Quality Gate") {
+        stage("Upload Artifact") {
             steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    // Parameter indicates whether to set pipeline to UNSTABLE
-                    // true = set pipeline to UNSTABLE, false = don't
-                    waitForQualityGate abortPipeline: true
-
-                }
-            }
-        }
-
-        stage("UploadArtifact"){
-            steps {
+                echo 'version and upload artifact to nexus'
+                echo 'use plugin nexusArtifactUploader with timestamp rename .war every new build'
+                echo 'google nexusArtifactUploader plugin for example code for jenkins pipeline change bellow'
+                echo 'create folder QA, use defalet jenkins built-in vars in version'
+                echo ''
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',
@@ -99,24 +97,31 @@ pipeline {
                     credentialsId: "${NEXUS_LOGIN}",
                     artifacts: [
                         [artifactId: 'vproapp',
-                         classifier: '',
-                         file: 'target/vprofile-v2.war',
-                         type: 'war']
-                    ]
-                )
-            }         
+                        classifier: '',
+                        file: 'target/vprofile-v2.war',
+                        type: 'war']
+                        ]
+                    )
+            }
         }
 
-        stage('Build App Image') {
+        stage('Build docker Image for APP') {
             steps {
+                echo 'add env above to define ecr url and image name'
+                echo 'use script method, define var bellow'
+                echo 'use docker plugin "docker.build" to pass argument'
+                echo 'give image + build no. as tag, then give dockerfile path'
                 script {
                     dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Docker-files/app/multistage/")
                 }
             }
         }
 
-        stage('Upload App Image') {
+        stage('Upload App Image to ECR') {
             steps {
+                echo 'use docker registry plugin to use defined ecr url and cred to log in ecr'
+                echo 'use last stage dockerImage with method push function'
+                echo ' give tag by using jenkins build in var build no, and tag as latest'
                 script {
                   docker.withRegistry( vprofileRegistry, registryCredential ) {
                     dockerImage.push("$BUILD_NUMBER")
@@ -124,27 +129,18 @@ pipeline {
                   }
                 }
             }
-        }
-
-        stage('Depoly to ECS staging') {
-            steps{
-                withAWS(credentials: 'awscreds', region: 'ap-southeast-2') {
-                    sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
-                }
-            }
-        }
+        }       
     }
-
     post {
         always {
-            echo 'Slack Notifications.'
+            echo 'Slack Notification.'
+            echo 'enable slack workspace "zackci" and slack channel "#cidi" '
+            echo 'configure slack to enable jenkinsci app, get token store in jenkins system, test'
+            echo 'use jenkins global var "currentBuild" and "currentResult" to define result of pipeline'
+            echo 'use def on top for color '
             slackSend channel: '#cidi',
-                color: COLOR_MAP[currentBuild.currentResult],
-                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+            color: COLOR_MAP[currentBuild.currentResult],
+            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
         }
     }
-
 }
-
-
-

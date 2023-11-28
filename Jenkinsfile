@@ -56,6 +56,8 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv("${SONARSERVER}") {
+                    echo 'understand sonarscanner for jenkins'
+                    echo 'search google sonar scanner with jenkins'
                     sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
                     -Dsonar.projectName=vprofile \
                     -Dsonar.projectVersion=1.0 \
@@ -67,5 +69,30 @@ pipeline {
                 }
             }
         }
+
+        stage("Upload Artifact") {
+            steps {
+                echo 'version and upload artifact to nexus'
+                echo 'use plugin nexusArtifactUploader with timestamp rename .war every new build'
+                echo 'google nexusArtifactUploader plugin for example code for jenkins pipeline change bellow'
+                echo 'create folder QA, use defalet jenkins built-in vars in version'
+                echo ''
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    nexusUrl: "${NEXUSIP}:${NEXUSPORT}",
+                    groupId: 'QA',
+                    version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
+                    repository: "${RELEASE_REPO}",
+                    credentialsId: "${NEXUS_LOGIN}",
+                    artifacts: [
+                        [artifactId: 'vproapp',
+                        classifier: '',
+                        file: 'target/vprofile-v2.war',
+                        type: 'war']
+                        ]
+                    )
+            }
+        }        
     }
 }

@@ -5,13 +5,13 @@ def COLOR_MAP = [
 
 pipeline {
     agent any
-/*    tools { 
+    tools { 
         maven "MAVEN3"
         jdk "OracleJDK8"
     } 
-*/
+
     environment {
-/*
+
         SNAP_REPO = 'vprofile-snapshot'
         NEXUS_USER = 'admin'
         NEXUS_PASS = 'admin123'
@@ -21,7 +21,7 @@ pipeline {
         NEXUSPORT = "8081"
         NEXUS_LOGIN = "nexuslogin"
         NEXUS_GRP_REPO = 'vpro-maven-group'
-*/
+
         SONARSERVER = 'sonarserver'
         SONARSCANNER = 'sonarscanner' 
 
@@ -47,7 +47,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('UNIT Test') {
             steps {
                 sh 'mvn -s settings.xml test'

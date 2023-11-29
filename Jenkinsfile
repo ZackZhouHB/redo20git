@@ -46,7 +46,7 @@ pipeline {
                     archiveArtifacts artifacts: '**/*.war'
                 }
             }
-        }
+
 
         stage('UNIT Test') {
             steps {

@@ -16,12 +16,12 @@ spec:
     spec:
       containers:
       - name: vproapp
-        image: zackz001/redo20-e4-app:v2
+        image: zackz001/redo20-e4-app:v2   # github image
         ports:
         - name: vproapp-port
           containerPort: 8080
-      initContainers:
-      - name: init-mydb
+      initContainers:                      # init container as dependency to query and wait
+      - name: init-mydb                    # app will depend on db and memcache ready
         image: busybox
         command: ['sh', '-c', 'until nslookup vprodb; do echo waiting for mydb; sleep 2; done;']
       - name: init-memcache

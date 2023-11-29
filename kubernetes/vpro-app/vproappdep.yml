@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: vproapp
-        image: vprofile/vprofileapp:V1 
+        image: zackz001/redo20-e4-app:v2
         ports:
         - name: vproapp-port
           containerPort: 8080

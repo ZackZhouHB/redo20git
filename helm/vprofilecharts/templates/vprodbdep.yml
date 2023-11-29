@@ -38,7 +38,7 @@ spec:
         - name: vpro-db-data
           # This AWS EBS volume must already exist and running same zone with db #
           awsElasticBlockStore:                # volume must with tag for clustername
-             volumeID: vol-06aaddc40bae8a0c2
+             volumeID: vol-0296f956455e26f7f
              fsType: ext4
       initContainers:                      # init container as dependency to query and wait
       - name: init-db                    # app will depend on db and memcache ready

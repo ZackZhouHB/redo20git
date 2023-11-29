@@ -43,7 +43,7 @@ spec:
       initContainers:                      # init container as dependency to query and wait
       - name: init-db                    # app will depend on db and memcache ready
         image: busybox
-        args: ["rm", "rf", "/var/lib/mysql/lost_found"]
+        args: ["rm", "-rf", "/var/lib/mysql/lost_found"]
         volumeMounts:                           # mount volume to ebs 3gb
         - mountPath: /var/lib/mysql
           name: vpro-db-data

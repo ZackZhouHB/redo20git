@@ -32,12 +32,18 @@ spec:
              secretKeyRef:
                name: app-secret
                key: db-pass
-      nodeSelector:         # DB running same zone with the volume created before #
-        zone: ap-southeast-2a
+      nodeSelector:         # DB running same label with the volume created on before #
+        app: zz              # DB will schedule on the node with this label 
       volumes:  # volume must with tag for clustername + route53 domane
         - name: vpro-db-data
           # This AWS EBS volume must already exist and running same zone with db #
           awsElasticBlockStore:                # volume must with tag for clustername
              volumeID: vol-06aaddc40bae8a0c2
              fsType: ext4
-
+      initContainers:                      # init container as dependency to query and wait
+      - name: init-db                    # app will depend on db and memcache ready
+        image: busybox
+        args: ["rm", "rf", "/var/lib/mysql/lost_found"]
+        volumeMounts:                           # mount volume to ebs 3gb
+        - mountPath: /var/lib/mysql
+          name: vpro-db-data

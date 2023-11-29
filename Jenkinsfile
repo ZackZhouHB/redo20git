@@ -30,7 +30,7 @@ pipeline {
         ARTVERSION = "${env.BUILD_ID}"       
     }
     stages {
-
+        stage('Build artifact') {
             steps {
                 sh 'mvn -s settings.xml -DskipTests install'
                 echo 'this stage run maven install to pass setting from pom.xml and settings.xml'
@@ -46,7 +46,7 @@ pipeline {
                     archiveArtifacts artifacts: '**/*.war'
                 }
             }
-
+        }
 
         stage('UNIT Test') {
             steps {

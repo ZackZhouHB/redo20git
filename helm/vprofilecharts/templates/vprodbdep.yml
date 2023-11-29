@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprodb
+  labels:
+    app: vprodb
+spec:
+  selector:
+    matchLabels:
+      app: vprodb
+  replicas: 1   # 1 = we just need 1 DB #
+  template:
+    metadata:
+      labels:
+        app: vprodb
+    spec:      # specification for pod #
+      containers:
+      - name: vprodb
+        image: zackz001/redo20-e4-db:v2
+        #imagePullPolicy: IfNotPresent
+        #args:
+        #  - "--ignore-db-dir=lost+found"
+        volumeMounts:                           # mount volume to ebs 3gb
+        - mountPath: /var/lib/mysql
+          name: vpro-db-data
+        ports:
+        - name: vprodb-port
+          containerPort: 3306
+        env:               # fetch dbname and pass from env var app-secret.yml file #
+         - name: MYSQL_ROOT_PASSWORD             
+           valueFrom:
+             secretKeyRef:
+               name: app-secret
+               key: db-pass
+      nodeSelector:         # DB running same label with the volume created on before #
+        app: zz              # DB will schedule on the node with this label 
+      volumes:  # volume must with tag for clustername + route53 domane
+        - name: vpro-db-data
+          # This AWS EBS volume must already exist and running same zone with db #
+          awsElasticBlockStore:                # volume must with tag for clustername
+             volumeID: vol-06aaddc40bae8a0c2
+             fsType: ext4
+      initContainers:                      # init container as dependency to query and wait
+      - name: init-db                    # app will depend on db and memcache ready
+        image: busybox
+        args: ["rm", "-rf", "/var/lib/mysql/lost_found"]
+        volumeMounts:                           # mount volume to ebs 3gb
+        - mountPath: /var/lib/mysql
+          name: vpro-db-data
